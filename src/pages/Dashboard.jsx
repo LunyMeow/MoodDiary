@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { deleteDoc, doc } from "firebase/firestore";
 import { Link } from "react-router-dom";
 
+import { encrypt, decrypt } from "../utils/crypto";
+
 
 
 
@@ -92,7 +94,7 @@ export default function Home() {
                         Çıkış
                     </button>
                     <Link to="/Profile">
-                        <button class="rounded">Profilim</button>
+                        <button className="rounded">Profilim</button>
                     </Link>
 
 
@@ -117,7 +119,7 @@ export default function Home() {
                                 key={diary.id}
                                 className="border p-4 rounded shadow hover:shadow-md transition"
                             >
-                                <p className="text-black dark:text-white">{diary.content}</p>
+                                <p className="text-black dark:text-white">{decrypt(diary.content)}</p>
                                 <small className="text-gray-500">
                                     {new Date(diary.createdAt?.seconds * 1000).toLocaleString()}
                                 </small>

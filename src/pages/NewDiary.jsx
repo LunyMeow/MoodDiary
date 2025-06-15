@@ -3,6 +3,10 @@ import { useForm } from "react-hook-form";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "../services/firebase";
 import { useNavigate } from "react-router-dom";
+import { encrypt } from "../utils/crypto";
+import { Link } from "react-router-dom";
+
+
 
 export default function NewDiary() {
   const { register, handleSubmit } = useForm();
@@ -11,11 +15,12 @@ export default function NewDiary() {
   const onSubmit = async (data) => {
     const user = auth.currentUser;
     if (!user) return;
-    
+
+    const encryptedContent = encrypt(data.content);
 
     await addDoc(collection(db, "diaries"), {
       userId: user.uid,
-      content: data.content,
+      content: encryptedContent,
       createdAt: serverTimestamp(),
     });
 
@@ -39,6 +44,13 @@ export default function NewDiary() {
         >
           Kaydet
         </button>
+        <div className="flex justify-center mt-4">
+          <Link to="/">
+            <button className="bg-blue-600 hover:bg-blue-900 text-white py-2 px-4 rounded">
+              Ana Sayfa
+            </button>
+          </Link>
+        </div>
       </form>
     </div>
   );

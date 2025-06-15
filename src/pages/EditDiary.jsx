@@ -4,6 +4,10 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useForm } from "react-hook-form";
 import { db, auth } from "../services/firebase";
 import { useEffect } from "react";
+import { encrypt, decrypt } from "../utils/crypto";
+import { Link } from "react-router-dom";
+
+
 
 export default function EditDiary() {
   const { id } = useParams();
@@ -19,7 +23,8 @@ export default function EditDiary() {
         return navigate("/");
       }
 
-      setValue("content", snapshot.data().content);
+      const decryptedContent = decrypt(snapshot.data().content);
+      setValue("content", decryptedContent);
     };
 
     loadDiary();
@@ -27,8 +32,10 @@ export default function EditDiary() {
 
   const onSubmit = async (data) => {
     const ref = doc(db, "diaries", id);
+    const encryptedContent = encrypt(data.content);
+
     await updateDoc(ref, {
-      content: data.content,
+      content: encryptedContent,
     });
 
     navigate("/");
@@ -48,6 +55,13 @@ export default function EditDiary() {
         >
           Güncelle
         </button>
+        <div className="flex justify-center mt-4">
+          <Link to="/">
+            <button className="bg-blue-600 hover:bg-blue-900 text-white py-2 px-4 rounded">
+              Ana Sayfa
+            </button>
+          </Link>
+        </div>
       </form>
     </div>
   );
