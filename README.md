@@ -1,12 +1,20 @@
-# React + Vite
+MoodDiary 📝✨
+MoodDiary, React ve Firebase kullanılarak geliştirilmiş, kullanıcıların duygularını ve günlüklerini kolayca kaydedip yönetebileceği modern bir web uygulamasıdır.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Özellikler:
+Kullanıcı kaydı ve güvenli oturum açma 🔐
 
-Currently, two official plugins are available:
+Kişisel profil bilgilerini (kullanıcı adı, tam ad, şifre) güncelleyebilme 🧑‍💻
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Günlük ekleme, düzenleme ve silme işlemleri 🗒️
 
-## Expanding the ESLint configuration
+Profil fotoğrafı yükleme ve varsayılan fotoğraf kullanımı 📸
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Firebase Firestore ve Storage ile hızlı ve güvenilir veri yönetimi ☁️
+
+Teknolojiler:
+Frontend: React, Tailwind CSS
+
+Backend & Veri: Firebase Authentication, Firestore, Firebase Storage
+
+MoodDiary, kullanıcı deneyimini ön planda tutarak, temiz ve kullanıcı dostu bir arayüz sunar. Ayrıca veri güvenliği için Firebase’in güçlü kimlik doğrulama ve erişim kontrol mekanizmalarını kullanır.
