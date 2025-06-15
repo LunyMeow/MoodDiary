@@ -17,11 +17,11 @@ MoodDiary, React ve Firebase kullanılarak geliştirilmiş, kullanıcıların du
 
 MoodDiary, kullanıcı deneyimini ön planda tutarak, temiz ve kullanıcı dostu bir arayüz sunar. Ayrıca veri güvenliği için Firebase’in güçlü kimlik doğrulama ve erişim kontrol mekanizmalarını kullanır.
 
-[Ekran Görüntüsü](ScreenShost/1.png)
-[Ekran Görüntüsü](ScreenShost/2.png)
+[Ekran Görüntüsü](ScreenShots/1.png)
+[Ekran Görüntüsü](ScreenShots/2.png)
 
-[Ekran Görüntüsü](ScreenShost/3.png)
-[Ekran Görüntüsü](ScreenShost/4.png)
+[Ekran Görüntüsü](ScreenShots/3.png)
+[Ekran Görüntüsü](ScreenShots/4.png)
 
 
 
