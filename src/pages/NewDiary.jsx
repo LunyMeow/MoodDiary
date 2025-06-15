@@ -1,0 +1,45 @@
+// src/pages/NewDiary.jsx
+import { useForm } from "react-hook-form";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db, auth } from "../services/firebase";
+import { useNavigate } from "react-router-dom";
+
+export default function NewDiary() {
+  const { register, handleSubmit } = useForm();
+  const navigate = useNavigate();
+
+  const onSubmit = async (data) => {
+    const user = auth.currentUser;
+    if (!user) return;
+    
+
+    await addDoc(collection(db, "diaries"), {
+      userId: user.uid,
+      content: data.content,
+      createdAt: serverTimestamp(),
+    });
+
+    navigate("/");
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-400 to-blue-500 dark:from-gray-800 dark:to-black">
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-8 rounded-xl shadow-lg w-full max-w-xl dark:bg-gray-800">
+        <h2 className="text-2xl font-bold mb-6 text-center text-green-700 dark:text-yellow-500">
+          Yeni Günlük Ekle
+        </h2>
+        <textarea
+          {...register("content", { required: true })}
+          className="w-full p-4 border border-gray-300 rounded h-64 resize-none text-black dark:bg-gray-900 dark:text-white"
+          placeholder="Bugün neler hissettin?"
+        ></textarea>
+        <button
+          type="submit"
+          className="bg-green-600 hover:bg-green-700 text-white mt-4 py-2 px-4 rounded w-full "
+        >
+          Kaydet
+        </button>
+      </form>
+    </div>
+  );
+}
