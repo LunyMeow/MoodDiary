@@ -7,6 +7,7 @@ MoodDiary, React ve Firebase kullanılarak geliştirilmiş, kullanıcıların du
 * Kullanıcı kaydı ve güvenli oturum açma 🔐
 * Kişisel profil bilgilerini (kullanıcı adı, tam ad, şifre) güncelleyebilme 🧑‍💻
 * Günlük ekleme, düzenleme ve silme işlemleri 🗒️
+* Günlük verileri veritabanına şifrelenmiş olarak saklanır 🔑
 * Profil fotoğrafı yükleme ve varsayılan fotoğraf kullanımı 📸
 * Firebase Firestore ve Storage ile hızlı ve güvenilir veri yönetimi ☁️
 
