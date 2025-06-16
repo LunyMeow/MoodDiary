@@ -1,22 +1,41 @@
 // src/pages/NewDiary.jsx
 import { useForm } from "react-hook-form";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db, auth } from "../services/firebase";
+import { collection, addDoc, serverTimestamp, doc,getDoc } from "firebase/firestore";
+import { getFirebaseDB, getFirebaseAuth } from "../services/firebase"
 import { useNavigate } from "react-router-dom";
 import { encrypt } from "../utils/crypto";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+
 
 
 
 export default function NewDiary() {
+
+  const [aesPass, setAesPass] = useState("");
+
   const { register, handleSubmit } = useForm();
   const navigate = useNavigate();
+  const auth = getFirebaseAuth();
+  const db = getFirebaseDB();
 
+  const user = auth?.currentUser;
+
+  const fetchKey = async () => {
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    const data = docSnap.data();
+    setAesPass(data.aesPass || "default")
+
+  };
+
+  fetchKey();
   const onSubmit = async (data) => {
     const user = auth.currentUser;
     if (!user) return;
 
-    const encryptedContent = encrypt(data.content);
+    const encryptedContent = encrypt(data.content,aesPass);
 
     await addDoc(collection(db, "diaries"), {
       userId: user.uid,

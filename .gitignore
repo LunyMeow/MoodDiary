@@ -23,3 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.firebaserc
+./functions/buildApis.ps1
+functions/buildApis.ps1
+src/services/firebase_main.js

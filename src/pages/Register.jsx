@@ -1,13 +1,25 @@
 import { useForm } from "react-hook-form";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../services/firebase";
+import { getFirebaseAuth, getFirebaseDB } from "../services/firebase"; // ⬅️ değiştirildi
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { doc, setDoc } from "firebase/firestore";
 import { Link } from "react-router-dom";
 
 
+function generateAESKey(length = 32) {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
+  let key = '';
+  for (let i = 0; i < length; i++) {
+    key += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  return key;
+}
+
+
+
 export default function Register() {
+  
   const { register, handleSubmit } = useForm();
   const navigate = useNavigate();
   const [error, setError] = useState("");
@@ -15,6 +27,8 @@ export default function Register() {
   const onSubmit = async (data) => {
     try {
       // 1. Firebase Auth ile kullanıcı oluştur
+      const auth = getFirebaseAuth();
+      const db = getFirebaseDB();
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
@@ -23,10 +37,13 @@ export default function Register() {
         username: data.username,
         fullname: data.fullname,
         email: data.email,
+        aesPass:generateAESKey()
       });
 
       navigate("/"); // başarılıysa anasayfaya git
     } catch (err) {
+      console.error("Register Hata:", err); // <-- Stack trace ve hata türü
+
       setError(err.message);
     }
   };
@@ -92,15 +109,15 @@ export default function Register() {
           Hesap Oluştur
         </button>
 
-              <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-        Zaten bir hesabınız var mı?{" "}
-        <Link
-          to="/login"
-          className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-600 font-semibold"
-        >
-          Giriş Yap
-        </Link>
-      </p>
+        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+          Zaten bir hesabınız var mı?{" "}
+          <Link
+            to="/login"
+            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-600 font-semibold"
+          >
+            Giriş Yap
+          </Link>
+        </p>
 
       </form>
     </div>

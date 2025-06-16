@@ -1,12 +1,20 @@
 import CryptoJS from "crypto-js";
+import { getAESPass, isFirebaseReady } from "../services/firebase";
 
-const SECRET_KEY =import.meta.env.VITE_AES_PASSWORD; // Bu anahtarı güvenli tutun!
 
-export function encrypt(text) {
+
+
+
+
+export function encrypt(text,key="default") {
+  const SECRET_KEY = getAESPass(); // Bu anahtarı güvenli tutun!
+
   return CryptoJS.AES.encrypt(text, SECRET_KEY).toString();
 }
 
-export function decrypt(ciphertext) {
+export function decrypt(ciphertext,key="default") {
+  const SECRET_KEY = getAESPass(); // Bu anahtarı güvenli tutun!
+
   if (!ciphertext || typeof ciphertext !== "string") return "";
   try {
     const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);

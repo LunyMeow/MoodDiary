@@ -3,15 +3,15 @@ import { useEffect, useState } from "react";
 export default function ThemeToggle() {
   const [isDark, setIsDark] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
-    console.log("[Init] Kaydedilmiş tema:", savedTheme);
+    //console.log("[Init] Kaydedilmiş tema:", savedTheme);
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    console.log("[Init] Sistem tercihi karanlık mı?", prefersDark);
+    //console.log("[Init] Sistem tercihi karanlık mı?", prefersDark);
     return savedTheme === "dark" || (!savedTheme && prefersDark);
   });
 
   useEffect(() => {
     const root = window.document.documentElement;
-    console.log("[Effect] Tema uygulanıyor:", isDark ? "dark" : "light");
+    //console.log("[Effect] Tema uygulanıyor:", isDark ? "dark" : "light");
 
     if (isDark) {
       root.classList.add("dark");
@@ -25,7 +25,7 @@ export default function ThemeToggle() {
   }, [isDark]);
 
   const toggleTheme = () => {
-    console.log("[Toggle] Tema değiştiriliyor. Yeni tema:", !isDark ? "dark" : "light");
+    //console.log("[Toggle] Tema değiştiriliyor. Yeni tema:", !isDark ? "dark" : "light");
     setIsDark(!isDark);
   };
 

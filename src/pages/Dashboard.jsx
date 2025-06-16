@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
-import { auth, db } from "../services/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  getFirebaseAuth,
+  getFirebaseDB,
+  getAESPass,
+} from "../services/firebase";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 import { signOut } from "firebase/auth";
-import { getDoc } from "firebase/firestore";  // import ekle
-
-
-import { useNavigate } from "react-router-dom";
-import { deleteDoc, doc } from "firebase/firestore";
-import { Link } from "react-router-dom";
-
+import { useNavigate, Link } from "react-router-dom";
 import { encrypt, decrypt } from "../utils/crypto";
 
 
@@ -17,63 +23,59 @@ import { encrypt, decrypt } from "../utils/crypto";
 
 
 export default function Home() {
-    const [diaries, setDiaries] = useState([]);
-
-    const [fullname, setUsername] = useState("");
-
-    const [photoURL, setPhotoURL] = useState("");
 
 
-    const navigate = useNavigate();
+  const auth = getFirebaseAuth();
+  const db = getFirebaseDB();
+  const user = auth?.currentUser;
 
-    const user = auth.currentUser;
+  const [diaries, setDiaries] = useState([]);
+  const [fullname, setUsername] = useState("");
+  const [photoURL, setPhotoURL] = useState("");
 
-    useEffect(() => {
-        if (!user) {
-            navigate("/login");
-            return;
-        }
+  const [aesPass,setAesPass] = useState("");
 
-        const fetchDiaries = async () => {
-            const q = query(
-                collection(db, "diaries"),
-                where("userId", "==", user.uid)
-            );
-            const querySnapshot = await getDocs(q);
-            const data = querySnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setDiaries(data);
-        };
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
 
-
-        const fetchUsername = async () => {
-            const docRef = doc(db, "users", user.uid);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                setUsername(data.fullname);
-                setPhotoURL(data.photoURL || "/default.png");
-            } else {
-                setUsername(user.email);
-                setPhotoURL("/default.png");
-            }
-        };
-
-
-
-        fetchUsername();
-
-        fetchDiaries();
-    }, [user, navigate]);
-
-    const handleLogout = async () => {
-        await signOut(auth);
-        navigate("/login");
+    const fetchDiaries = async () => {
+      const q = query(collection(db, "diaries"), where("userId", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setDiaries(data);
     };
+
+    const fetchUsername = async () => {
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setUsername(data.fullname);
+        setPhotoURL(data.photoURL || "/default.png");
+        setAesPass(data.aesPass || "default")
+      } else {
+        setUsername(user.email);
+        setPhotoURL("/default.png");
+      }
+    };
+
+    fetchUsername();
+    fetchDiaries();
+  }, [user, navigate, db]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/login");
+  };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-400 to-purple-600 p-6 dark:from-gray-900 dark:to-black p-6">
@@ -119,7 +121,7 @@ export default function Home() {
                                 key={diary.id}
                                 className="border p-4 rounded shadow hover:shadow-md transition"
                             >
-                                <p className="text-black dark:text-white">{decrypt(diary.content)}</p>
+                                <p className="text-black dark:text-white">{decrypt(diary.content,aesPass)}</p>
                                 <small className="text-gray-500">
                                     {new Date(diary.createdAt?.seconds * 1000).toLocaleString()}
                                 </small>

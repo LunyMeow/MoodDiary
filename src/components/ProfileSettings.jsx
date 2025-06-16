@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { auth, db, storage } from "../services/firebase"; // storage da import edildi
+import { getFirebaseAuth, getFirebaseDB, getFirebaseStorage } from "../services/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { updatePassword } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -7,7 +7,10 @@ import { Link } from "react-router-dom";
 
 
 export default function ProfileSettings() {
-  const user = auth.currentUser;
+
+  const user = getFirebaseAuth().currentUser;
+  const db = getFirebaseDB();
+  const storage = getFirebaseStorage();
 
   const [profile, setProfile] = useState({
     username: "",
@@ -30,6 +33,7 @@ export default function ProfileSettings() {
 
     async function fetchProfile() {
       try {
+
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {

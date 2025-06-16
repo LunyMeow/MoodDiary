@@ -18,6 +18,19 @@ MoodDiary, React ve Firebase kullanılarak geliştirilmiş, kullanıcıların du
 
 MoodDiary, kullanıcı deneyimini ön planda tutarak, temiz ve kullanıcı dostu bir arayüz sunar. Ayrıca veri güvenliği için Firebase’in güçlü kimlik doğrulama ve erişim kontrol mekanizmalarını kullanır.
 
+### Kurulum:
+* functions içindeki buildApis_example.ps1 dosyasının içindeki boş alanları api bilgileriniz ile doldurun
+* Komutlar:
+```bash
+cd functions
+npm install
+firebase login
+firebase init functions
+buildApis.ps1
+firebase deploy --only functions
+```
+* Daha sonra verilen Functions linkini services.js klasörünün içindeki link yerine kopyalayın
+
 <img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/2.png"></img>
 
 

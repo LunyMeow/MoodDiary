@@ -1,25 +1,37 @@
 // src/pages/Login.jsx
 import { useForm } from "react-hook-form";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../services/firebase";
+import { getFirebaseAuth, isFirebaseReady } from "../services/firebase";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 
 export default function Login() {
+
+    
     const { register, handleSubmit } = useForm();
     const navigate = useNavigate();
     const [error, setError] = useState("");
+    const [ready, setReady] = useState(false);
+
+
+
 
     const onSubmit = async (data) => {
         try {
+            if (!isFirebaseReady()) {
+                setError("Firebase henüz hazır değil, lütfen tekrar deneyin.");
+                return;
+            }
+            const auth = getFirebaseAuth();
             await signInWithEmailAndPassword(auth, data.email, data.password);
             navigate("/"); // giriş başarılıysa anasayfaya yönlendir
         } catch (err) {
-            setError("E-posta veya şifre hatalı!");
+            setError("E-posta veya şifre hatalı!" + err + isFirebaseReady());
         }
     };
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-400 to-indigo-600 dark:from-indigo-900 dark:to-teal-700">
@@ -61,15 +73,15 @@ export default function Login() {
                 >
                     Giriş Yap
                 </button>
-                            <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-                Hesabınız yok mu?{" "}
-                <Link
-                    to="/register"
-                    className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-600 font-semibold"
-                >
-                    Kayıt Ol
-                </Link>
-            </p>
+                <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+                    Hesabınız yok mu?{" "}
+                    <Link
+                        to="/register"
+                        className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-600 font-semibold"
+                    >
+                        Kayıt Ol
+                    </Link>
+                </p>
             </form>
 
 

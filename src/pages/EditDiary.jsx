@@ -2,17 +2,24 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useForm } from "react-hook-form";
-import { db, auth } from "../services/firebase";
-import { useEffect } from "react";
+import { getFirebaseDB, getFirebaseAuth } from "../services/firebase";
+import { useEffect, useState } from "react";
 import { encrypt, decrypt } from "../utils/crypto";
 import { Link } from "react-router-dom";
 
 
 
 export default function EditDiary() {
+  const [aesPass, setAesPass] = useState("");
+
+
   const { id } = useParams();
   const navigate = useNavigate();
   const { register, handleSubmit, setValue } = useForm();
+  const db = getFirebaseDB();
+  const auth = getFirebaseAuth();
+
+  const user = auth?.currentUser;
 
   useEffect(() => {
     const loadDiary = async () => {
@@ -23,16 +30,28 @@ export default function EditDiary() {
         return navigate("/");
       }
 
-      const decryptedContent = decrypt(snapshot.data().content);
+      const decryptedContent = decrypt(snapshot.data().content,aesPass);
       setValue("content", decryptedContent);
     };
 
     loadDiary();
   }, [id, navigate, setValue]);
 
+  const fetchKey = async () => {
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    const data = docSnap.data();
+    setAesPass(data.aesPass || "default")
+
+  };
+
+  fetchKey();
+
+
   const onSubmit = async (data) => {
     const ref = doc(db, "diaries", id);
-    const encryptedContent = encrypt(data.content);
+    const encryptedContent = encrypt(data.content, aesPass);
 
     await updateDoc(ref, {
       content: encryptedContent,
