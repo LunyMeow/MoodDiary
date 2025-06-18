@@ -27,3 +27,8 @@ dist-ssr
 ./functions/buildApis.ps1
 functions/buildApis.ps1
 src/services/firebase_main.js
+storage.rules
+database.rules
+firestore.rules
+.gitignore
+project-structure.txt

@@ -4,6 +4,8 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { updatePassword } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Link } from "react-router-dom";
+import { updateEmail } from "firebase/auth";
+
 
 
 export default function ProfileSettings() {
@@ -11,6 +13,8 @@ export default function ProfileSettings() {
   const user = getFirebaseAuth().currentUser;
   const db = getFirebaseDB();
   const storage = getFirebaseStorage();
+  const [newEmail, setNewEmail] = useState("");
+
 
   const [profile, setProfile] = useState({
     username: "",
@@ -42,6 +46,8 @@ export default function ProfileSettings() {
             username: data.username || "",
             fullname: data.fullname || "",
             photoURL: data.photoURL || "",
+            email: user.email || "",  // veya data.email varsa onu kullanabilirsin,
+
           });
         }
       } catch (err) {
@@ -107,6 +113,11 @@ export default function ProfileSettings() {
       if (newPassword.trim() !== "") {
         await updatePassword(user, newPassword);
       }
+      // E-posta değişikliği
+      if (newEmail.trim() !== "" && newEmail !== user.email) {
+        await updateEmail(user, newEmail);
+      }
+
 
       setMessage("Profil başarıyla güncellendi!");
       setNewPassword("");
@@ -171,6 +182,27 @@ export default function ProfileSettings() {
             required
           />
         </div>
+        <div>
+          <label className="block mb-1 text-gray-700 dark:text-gray-300">Mevcut E-posta</label>
+          <input
+            type="email"
+            value={profile.email}
+            disabled
+            className="w-full p-2 border rounded bg-gray-200 dark:bg-gray-600 dark:text-gray-300"
+          />
+        </div>
+    
+        <div>
+          <label className="block mb-1 text-gray-700 dark:text-gray-300">Yeni E-posta</label>
+          <input
+            type="email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
+            placeholder="E-posta değiştirmek için yeni e-posta gir"
+          />
+        </div>
+
 
         <div>
           <label className="block mb-1 text-gray-700 dark:text-gray-300">Yeni Şifre</label>
