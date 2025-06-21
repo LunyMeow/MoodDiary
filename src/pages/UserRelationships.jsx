@@ -117,7 +117,21 @@ export default function UserRelations() {
                                     key={index}
                                     className="flex justify-between items-center bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded"
                                 >
-                                    <span className="text-black dark:text-white">{user.username}</span>
+
+                                    <Link to={`/user/${user.username}`} className="flex items-center gap-4">
+                                        <img
+                                            src={user.photoURL || "/default.png"}
+                                            alt={user.username}
+                                            className="w-12 h-12 rounded-full object-cover"
+                                        />
+                                        <div>
+                                            <p className="font-semibold text-indigo-600 dark:text-indigo-400">
+                                                {user.fullname || user.username}
+                                                
+                                            </p>
+
+                                        </div>
+                                    </Link>
                                     <button
                                         onClick={() => handleRemove(field, user.uid)}
                                         className="bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded"

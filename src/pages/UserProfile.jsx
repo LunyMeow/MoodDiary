@@ -1,10 +1,22 @@
 import { useParams } from "react-router-dom";
 import { getFirebaseDB } from "../services/firebase";
 import { query, collection, where, getDocs, doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { decrypt } from "../utils/crypto";
 import { Link } from "react-router-dom";
 import { getAuth } from "firebase/auth";
+
+
+import { httpsCallable } from "firebase/functions";
+
+import {
+    followUser,
+    unfollowUser,
+    blockUser,
+    unblockUser
+} from "../services/userActions";
+
+
 
 export default function UserProfile() {
     const debug = false;
@@ -31,36 +43,8 @@ export default function UserProfile() {
 
                 const userDoc = snap.docs[0];
                 const user = { uid: userDoc.id, ...userDoc.data() };
-                setUserData(user);
+                setUserData(user); // 🟢 Sadece kullanıcıyı al
                 log("Kullanıcı bulundu:", user);
-
-                const diariesQuery = query(
-                    collection(db, "diaries"),
-                    where("userId", "==", user.uid),
-                    where("status", "==", "public")
-                );
-                const diarySnap = await getDocs(diariesQuery);
-
-                const diaryData = diarySnap.docs.map((d) => {
-                    const data = d.data();
-                    let decryptedContent = "";
-
-                    try {
-                        decryptedContent = decrypt(data.content, data.aesPass || "default");
-                    } catch (err) {
-                        log("Decrypt hatası:", err);
-                        decryptedContent = "[İçerik çözülemedi]";
-                    }
-
-                    return {
-                        id: d.id,
-                        ...data,
-                        decryptedContent,
-                    };
-                });
-
-                setDiaries(diaryData);
-                log("Günlükler yüklendi:", diaryData);
             } catch (err) {
                 log("fetchUserByUsername hatası:", err);
             }
@@ -68,6 +52,58 @@ export default function UserProfile() {
 
         fetchUserByUsername();
     }, [username]);
+
+    // 🟢 userData geldikten sonra günlükleri al
+    useEffect(() => {
+        const fetchDiaries = async () => {
+            if (!userData) return;
+
+            try {
+                const diariesQuery = query(
+                    collection(db, "diaries"),
+                    where("userId", "==", userData.uid)
+                );
+                const diarySnap = await getDocs(diariesQuery);
+
+                const diaryData = diarySnap.docs
+                    .map((d) => {
+                        const data = d.data();
+                        let decryptedContent = "";
+
+                        try {
+                            decryptedContent = decrypt(data.content, data.aesPass || "default");
+                        } catch (err) {
+                            log("Decrypt hatası:", err);
+                            decryptedContent = "[İçerik çözülemedi]";
+                        }
+
+                        return {
+                            id: d.id,
+                            ...data,
+                            decryptedContent,
+                        };
+                    })
+                    .filter((diary) => {
+                        if (diary.status === "public") return true;
+
+                        if (
+                            diary.status === "onlyFollowers" &&
+                            userData.followers?.includes(currentUser?.uid)
+                        ) return true;
+
+                        return false;
+                    });
+
+                setDiaries(diaryData);
+                log("Günlükler yüklendi:", diaryData);
+            } catch (err) {
+                log("fetchDiaries hatası:", err);
+            }
+        };
+
+        fetchDiaries();
+    }, [userData]); // 🔁 sadece userData geldikten sonra çalışacak
+
 
     if (!userData) return <p>Kullanıcı bulunamadı.</p>;
 
@@ -77,21 +113,34 @@ export default function UserProfile() {
                 <div className="flex items-center gap-4 mb-6">
                     <img src={userData.photoURL || "/default.png"} className="w-20 h-20 rounded-full" />
                     <h1 className="text-2xl font-bold text-indigo-800 dark:text-white">{userData.fullname}</h1>
+                    {userData.uid === currentUser?.uid && "(Sen)"}
+                    <br></br>
+
+                    <div className="flex gap-6 text-center">
+                        <div>
+                            <p className="text-xl font-bold text-indigo-700 dark:text-indigo-300">{userData.followers?.length || 0}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Takipçi</p>
+                        </div>
+                        <div>
+                            <p className="text-xl font-bold text-indigo-700 dark:text-indigo-300">{userData.following?.length || 0}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Takip Edilen</p>
+                        </div>
+                    </div>
+
 
                     <div className="flex gap-4 mb-4">
                         {userData.followers?.includes(currentUser?.uid) ? (
                             <button
                                 onClick={async () => {
-                                    await updateDoc(doc(db, "users", userData.uid), {
-                                        followers: arrayRemove(currentUser.uid)
-                                    });
-                                    await updateDoc(doc(db, "users", currentUser.uid), {
-                                        following: arrayRemove(userData.uid)
-                                    });
-                                    setUserData({
-                                        ...userData,
-                                        followers: userData.followers.filter(uid => uid !== currentUser.uid)
-                                    });
+                                    try {
+                                        await unfollowUser(userData.uid);
+                                        setUserData({
+                                            ...userData,
+                                            followers: userData.followers.filter(uid => uid !== currentUser.uid)
+                                        });
+                                    } catch (error) {
+                                        console.error("Takipten çıkarken hata:", error);
+                                    }
                                 }}
                                 className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-1 rounded"
                             >
@@ -100,16 +149,15 @@ export default function UserProfile() {
                         ) : (
                             <button
                                 onClick={async () => {
-                                    await updateDoc(doc(db, "users", userData.uid), {
-                                        followers: arrayUnion(currentUser.uid)
-                                    });
-                                    await updateDoc(doc(db, "users", currentUser.uid), {
-                                        following: arrayUnion(userData.uid)
-                                    });
-                                    setUserData({
-                                        ...userData,
-                                        followers: [...(userData.followers || []), currentUser.uid]
-                                    });
+                                    try {
+                                        await followUser(userData.uid);
+                                        setUserData({
+                                            ...userData,
+                                            followers: [...(userData.followers || []), currentUser.uid]
+                                        });
+                                    } catch (error) {
+                                        console.error("Takip ederken hata:", error);
+                                    }
                                 }}
                                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
                             >
@@ -121,14 +169,16 @@ export default function UserProfile() {
                             <button
                                 onClick={async () => {
                                     if (window.confirm("Bu kullanıcının engelini kaldırmak istediğinize emin misiniz?")) {
-                                        await updateDoc(doc(db, "users", currentUser.uid), {
-                                            blocked: arrayRemove(userData.uid)
-                                        });
-                                        setUserData({
-                                            ...userData,
-                                            blocked: userData.blocked.filter(uid => uid !== userData.uid)
-                                        });
-                                        alert("Engel kaldırıldı.");
+                                        try {
+                                            await unblockUser(userData.uid);
+                                            setUserData({
+                                                ...userData,
+                                                blocked: userData.blocked.filter(uid => uid !== userData.uid)
+                                            });
+                                            alert("Engel kaldırıldı.");
+                                        } catch (error) {
+                                            console.error("Engel kaldırırken hata:", error);
+                                        }
                                     }
                                 }}
                                 className="text-sm text-purple-600 hover:underline bg-slate-100"
@@ -139,14 +189,16 @@ export default function UserProfile() {
                             <button
                                 onClick={async () => {
                                     if (window.confirm("Bu kullanıcıyı engellemek istediğinize emin misiniz?")) {
-                                        await updateDoc(doc(db, "users", currentUser.uid), {
-                                            blocked: arrayUnion(userData.uid)
-                                        });
-                                        setUserData({
-                                            ...userData,
-                                            blocked: [...(userData.blocked || []), userData.uid]
-                                        });
-                                        alert("Kullanıcı engellendi.");
+                                        try {
+                                            await blockUser(userData.uid);
+                                            setUserData({
+                                                ...userData,
+                                                blocked: [...(userData.blocked || []), userData.uid]
+                                            });
+                                            alert("Kullanıcı engellendi.");
+                                        } catch (error) {
+                                            console.error("Engellerken hata:", error);
+                                        }
                                     }
                                 }}
                                 className="text-sm text-red-600 hover:underline bg-yellow-300 hover:bg-yellow-500"

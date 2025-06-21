@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import {
     getFirebaseAuth,
     getFirebaseDB,
-    
+
 } from "../services/firebase";
 import {
     collection,
@@ -16,6 +16,8 @@ import {
 import { signOut } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { encrypt, decrypt } from "../utils/crypto";
+import NotificationPanel from "../components/NotificationPanel"; // yolunu projene göre düzenle
+
 
 
 
@@ -47,7 +49,7 @@ export default function Home() {
             const querySnapshot = await getDocs(q);
             const data = querySnapshot.docs.map((doc) => ({
                 id: doc.id,
-                aesPass:doc.aesPass,
+                aesPass: doc.aesPass,
                 ...doc.data(),
             }));
             setDiaries(data);
@@ -75,35 +77,53 @@ export default function Home() {
         await signOut(auth);
         navigate("/login");
     };
+    const [showNotifs, setShowNotifs] = useState(false);
+
 
     return (
 
         <div className="min-h-screen bg-gradient-to-br from-indigo-400 to-purple-600 p-6 dark:from-gray-900 dark:to-black p-6">
-            <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md mb-6 dark:bg-gray-800">
+            <div className=" justify-start max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md mb-6 dark:bg-gray-800">
                 <h1 className="text-3xl font-bold text-indigo-700 dark:text-white">
                     Hoş geldin, {fullname}
                 </h1>
+                <div className="relative p-6">
+                    <button
+                        onClick={() => setShowNotifs((prev) => !prev)}
+                        className="bg-indigo-600 text-white px-2 py-2 rounded hover:bg-indigo-800"
+                    >
+                        🔔 Bildirimler
+                    </button>
+
+                    <NotificationPanel open={showNotifs} onClose={() => setShowNotifs(false)} />
+                </div>
             </div>
+
             <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg dark:bg-gray-800">
-                <div className="flex justify-between items-top mb-6">
+                <div className="flex justify-between items-top mb-2">
                     {/* Sol taraf */}
                     <div className="flex gap-3">
-                        <Link to="/UserRelations">
-                            <button className="bg-blue-500 hover:bg-blue-600 text-black py-2 px-4 rounded dark:text-white">
-                                İlişkilerim
-                            </button>
-                        </Link>
-                        <Link to="/Profile">
-                            <button className="rounded bg-yellow-300 px-4 py-2 dark:bg-green-400 dark:text-white dark:hover:bg-green-500 hover:bg-yellow-400">
-                                Profilim
-                            </button>
+                        <Link
+                            to="/UserRelations"
+                            className="h-10 inline-flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-black px-4 rounded dark:text-white"
+                        >
+                            İlişkilerim
                         </Link>
 
-                        <Link to="/UserSearch">
-                            <button className="rounded bg-green-300 px-4 py-2 dark:bg-red-700 dark:text-white hover:bg-green-400 dark:hover:bg-red-800">
-                                Kullanıcı Ara
-                            </button>
+                        <Link
+                            to="/Profile"
+                            className="h-10 inline-flex items-center justify-center bg-yellow-300 hover:bg-yellow-400 text-black px-4 rounded dark:bg-green-400 dark:text-white dark:hover:bg-green-500"
+                        >
+                            Profilim
                         </Link>
+
+                        <Link
+                            to="/UserSearch"
+                            className="h-10 inline-flex items-center justify-center bg-green-300 hover:bg-green-400 text-black px-4 rounded dark:bg-red-700 dark:text-white dark:hover:bg-red-800"
+                        >
+                            Kullanıcı Ara
+                        </Link>
+
                     </div>
 
                     {/* Sağ taraf */}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { getFirebaseDB } from "../services/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, limit } from "firebase/firestore";
 import { Link } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 
@@ -31,7 +31,8 @@ export default function UserSearch() {
             const q = query(
                 usersRef,
                 where("username", ">=", searchTerm),
-                where("username", "<=", searchTerm + "\uf8ff")
+                where("username", "<=", searchTerm + "\uf8ff"),
+                limit(10)
             );
             const querySnapshot = await getDocs(q);
 

@@ -1,35 +1,95 @@
-# MoodDiary 📝✨
+---
 
-MoodDiary, React ve Firebase kullanılarak geliştirilmiş, kullanıcıların duygularını ve günlüklerini kolayca kaydedip yönetebileceği modern bir web uygulamasıdır.
+# MoodDiary ✨
 
-### Özellikler:
+**MoodDiary**, React ve Firebase kullanılarak geliştirilmiş, kullanıcıların duygularını ve günlüklerini kolayca kaydedip yönetebileceği modern bir web uygulamasıdır.
 
-* Kullanıcı kaydı ve güvenli oturum açma 🔐
-* Kişisel profil bilgilerini (kullanıcı adı, tam ad, şifre) güncelleyebilme 🧑‍💻
-* Günlük ekleme, düzenleme ve silme işlemleri 🗒️
-* Günlük verileri veritabanına şifrelenmiş olarak saklanır 🔑
-* Profil fotoğrafı yükleme ve varsayılan fotoğraf kullanımı 📸
-* Firebase Firestore ve Storage ile hızlı ve güvenilir veri yönetimi ☁️
+---
 
-### Teknolojiler:
+## 📌 Özellikler
 
-* **Frontend:** React, Tailwind CSS
-* **Backend & Veri:** Firebase Authentication, Firestore, Firebase Storage
+* **Kullanıcı Kaydı ve Oturum Açma**: Firebase Authentication ile güvenli kullanıcı yönetimi.
+* **Kişisel Profil Yönetimi**: Kullanıcı adı, tam ad ve şifre gibi bilgileri güncelleyebilme.
+* **Duygu ve Günlük Kaydı**: Kullanıcılar, günlüklerini yazarken ruh hallerini seçebilirler.
+* **Bildirim Sistemi**: Takip edilen kullanıcıların aktiviteleri hakkında bildirimler alabilirsiniz.
+* **Karanlık Mod Desteği**: Tailwind CSS ile responsive ve modern bir tasarım.
+* **Veri Senkronizasyonu**: Firebase Firestore ile gerçek zamanlı veri güncellemeleri.
 
-MoodDiary, kullanıcı deneyimini ön planda tutarak, temiz ve kullanıcı dostu bir arayüz sunar. Ayrıca veri güvenliği için Firebase’in güçlü kimlik doğrulama ve erişim kontrol mekanizmalarını kullanır.
+---
 
-### Kurulum:
-* functions içindeki buildApis_example.ps1 dosyasının içindeki boş alanları api bilgileriniz ile doldurun
-* Komutlar:
+## 🛠️ Teknolojiler
+
+* **Frontend**: React, Vite, Tailwind CSS
+* **Backend**: Firebase Functions
+* **Veritabanı**: Firebase Firestore
+* **Kimlik Doğrulama**: Firebase Authentication
+
+---
+
+## 🚀 Başlarken
+
+### 1. Projeyi Klonlayın
+
 ```bash
-cd functions
-npm install
-firebase login
-firebase init functions
-buildApis.ps1
-firebase deploy --only functions
+git clone https://github.com/LunyMeow/MoodDiary.git
+cd MoodDiary
 ```
-* Daha sonra verilen Functions linkini services.js klasörünün içindeki link yerine kopyalayın
+
+### 2. Bağımlılıkları Yükleyin
+
+```bash
+npm install
+```
+
+### 3. Firebase Projesi Oluşturun
+
+* Firebase Console üzerinden yeni bir proje oluşturun.
+* Firebase Authentication, Firestore ve Functions servislerini etkinleştirin.
+* `.env` dosyasını oluşturun ve aşağıdaki ortam değişkenlerini ekleyin:
+
+```env
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+VITE_FIREBASE_APP_ID=your-app-id
+```
+
+### 4. Firebase Functions İçin Ortam Değişkenlerini Ayarlayın
+
+```bash
+firebase functions:config:set firebase.api_key="your-api-key" firebase.auth_domain="your-auth-domain" firebase.project_id="your-project-id"
+```
+
+### 5. Uygulamayı Başlatın
+
+```bash
+npm run dev
+```
+
+---
+
+
+---
+
+## 🤝 Katkı Sağlama
+
+Katkılarınız için teşekkür ederiz! Lütfen aşağıdaki adımları izleyerek katkı sağlayabilirsiniz:
+
+1. Bu repository'yi fork'layın.
+2. Yeni bir dal oluşturun (`git checkout -b feature-xyz`).
+3. Değişikliklerinizi yapın ve commit'leyin (`git commit -am 'Add feature xyz'`).
+4. Dalınızı GitHub'a push'layın (`git push origin feature-xyz`).
+5. Bir pull request açın.
+
+---
+
+## 📄 Lisans
+
+Bu proje MIT Lisansı ile lisanslanmıştır. Daha fazla bilgi için [LICENSE](LICENSE) dosyasına bakabilirsiniz.
+
+---
 
 <img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/2.png"></img>
 
