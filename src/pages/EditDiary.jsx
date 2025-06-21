@@ -1,63 +1,110 @@
-// src/pages/EditDiary.jsx
 import { useParams, useNavigate } from "react-router-dom";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useForm } from "react-hook-form";
-import { getFirebaseDB, getFirebaseAuth } from "../services/firebase";
+import { getFirebaseDB, getFirebaseAuth, getFirebaseApp } from "../services/firebase";
 import { useEffect, useState } from "react";
-import { encrypt, decrypt } from "../utils/crypto";
+import { decrypt } from "../utils/crypto";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { Link } from "react-router-dom";
-
-
 
 export default function EditDiary() {
   const [aesPass, setAesPass] = useState("");
-
+  const [diaryLoaded, setDiaryLoaded] = useState(false);
 
   const { id } = useParams();
   const navigate = useNavigate();
   const { register, handleSubmit, setValue } = useForm();
   const db = getFirebaseDB();
   const auth = getFirebaseAuth();
-
   const user = auth?.currentUser;
 
+  const functions = getFunctions(getFirebaseApp());
+  const editDiary = httpsCallable(functions, "editDiary");
+
+  // aesPass yükle
   useEffect(() => {
-    const loadDiary = async () => {
-      const ref = doc(db, "diaries", id);
-      const snapshot = await getDoc(ref);
+    if (!user?.uid) return;
 
-      if (!snapshot.exists() || snapshot.data().userId !== auth.currentUser?.uid) {
-        return navigate("/");
+    async function fetchKey() {
+      try {
+        const ref = doc(db, "diaries", id);
+        const snapshot = await getDoc(ref);
+
+        if (!snapshot.exists()) {
+          navigate("/");
+          return;
+        }
+
+        const data = snapshot.data();
+
+        if (data.userId !== user.uid) {
+          navigate("/");
+          return;
+        }
+
+        setAesPass(data.aesPass || "default");
+      } catch (error) {
+        setAesPass("default");
       }
+    }
 
-      const decryptedContent = decrypt(snapshot.data().content,aesPass);
-      setValue("content", decryptedContent);
-    };
+    fetchKey();
+  }, [db, id, navigate, user]);
+
+  // Günlük verisini yükle ve decrypt et
+  useEffect(() => {
+    if (!aesPass || !user?.uid) return;
+
+    async function loadDiary() {
+      try {
+        const ref = doc(db, "diaries", id);
+        const snapshot = await getDoc(ref);
+
+        if (!snapshot.exists()) {
+          navigate("/");
+          return;
+        }
+
+        const data = snapshot.data();
+
+        if (data.userId !== user.uid) {
+          navigate("/");
+          return;
+        }
+
+        setValue("status", data.status || "private");
+
+        const decryptedContent = decrypt(data.content, aesPass);
+        setValue("content", decryptedContent);
+
+        setDiaryLoaded(true);
+      } catch {
+        setValue("content", "[İçerik çözülemedi]");
+      }
+    }
 
     loadDiary();
-  }, [id, navigate, setValue]);
+  }, [aesPass, db, id, navigate, setValue, user]);
 
-  const fetchKey = async () => {
-    const docRef = doc(db, "users", user.uid);
-    const docSnap = await getDoc(docRef);
+  // Form gönderimi - Cloud Function'a çağrı
+  const onSubmit = async (formData) => {
+    if (!user) return;
 
-    const data = docSnap.data();
-    setAesPass(data.aesPass || "default")
+    try {
+      const result = await editDiary({
+        diaryId: id,
+        newContent: formData.content,
+        status: formData.status,
+      });
 
-  };
-
-  fetchKey();
-
-
-  const onSubmit = async (data) => {
-    const ref = doc(db, "diaries", id);
-    const encryptedContent = encrypt(data.content, aesPass);
-
-    await updateDoc(ref, {
-      content: encryptedContent,
-    });
-
-    navigate("/");
+      if (result.data?.success) {
+        navigate("/");
+      } else {
+        alert("Güncelleme sırasında hata oluştu.");
+      }
+    } catch (error) {
+      alert("Güncelleme sırasında hata oluştu.");
+    }
   };
 
   return (
@@ -66,11 +113,21 @@ export default function EditDiary() {
         <h2 className="text-2xl font-bold mb-6 text-center text-yellow-700 dark:text-blue-700">Günlüğü Düzenle</h2>
         <textarea
           {...register("content", { required: true })}
-          className="w-full p-4 border border-gray-300 dark:bg-gray-600 rounded h-64 resize-none text-black : dark:text-white"
+          className="w-full p-4 border border-gray-300 dark:bg-gray-600 rounded h-64 resize-none text-black dark:text-white"
         ></textarea>
+        <select
+          {...register("status", { required: true })}
+          className="w-full p-2 mt-4 border border-gray-300 rounded text-black dark:bg-gray-600 dark:text-white"
+        >
+          <option value="public">Herkese Açık</option>
+          <option value="private">Sadece Ben</option>
+          <option value="onlyFollowers">Sadece Takipçiler</option>
+        </select>
+
         <button
           type="submit"
           className="bg-yellow-600 hover:bg-yellow-700 text-white mt-4 py-2 px-4 rounded w-full dark:bg-green-500 dark:hover:bg-green-900"
+          disabled={!diaryLoaded}
         >
           Güncelle
         </button>

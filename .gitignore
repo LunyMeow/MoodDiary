@@ -32,3 +32,4 @@ database.rules
 firestore.rules
 .gitignore
 project-structure.txt
+.firebaserc

@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import {
-  getFirebaseAuth,
-  getFirebaseDB,
-  getAESPass,
+    getFirebaseAuth,
+    getFirebaseDB,
+    
 } from "../services/firebase";
 import {
-  collection,
-  query,
-  where,
-  getDocs,
-  getDoc,
-  deleteDoc,
-  doc,
+    collection,
+    query,
+    where,
+    getDocs,
+    getDoc,
+    deleteDoc,
+    doc,
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
@@ -25,90 +25,103 @@ import { encrypt, decrypt } from "../utils/crypto";
 export default function Home() {
 
 
-  const auth = getFirebaseAuth();
-  const db = getFirebaseDB();
-  const user = auth?.currentUser;
+    const auth = getFirebaseAuth();
+    const db = getFirebaseDB();
+    const user = auth?.currentUser;
 
-  const [diaries, setDiaries] = useState([]);
-  const [fullname, setUsername] = useState("");
-  const [photoURL, setPhotoURL] = useState("");
+    const [diaries, setDiaries] = useState([]);
+    const [fullname, setUsername] = useState("");
+    const [photoURL, setPhotoURL] = useState(null);
 
-  const [aesPass,setAesPass] = useState("");
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
+    useEffect(() => {
+        if (!user) {
+            navigate("/login");
+            return;
+        }
 
-    const fetchDiaries = async () => {
-      const q = query(collection(db, "diaries"), where("userId", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setDiaries(data);
+        const fetchDiaries = async () => {
+            const q = query(collection(db, "diaries"), where("userId", "==", user.uid));
+            const querySnapshot = await getDocs(q);
+            const data = querySnapshot.docs.map((doc) => ({
+                id: doc.id,
+                aesPass:doc.aesPass,
+                ...doc.data(),
+            }));
+            setDiaries(data);
+        };
+
+        const fetchUsername = async () => {
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setUsername(data.fullname);
+                setPhotoURL(data.photoURL || "/default.png");
+            } else {
+                setUsername(user.email);
+                setPhotoURL("/default.png");
+            }
+        };
+
+        fetchUsername();
+        fetchDiaries();
+    }, [user, navigate, db]);
+
+    const handleLogout = async () => {
+        await signOut(auth);
+        navigate("/login");
     };
-
-    const fetchUsername = async () => {
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setUsername(data.fullname);
-        setPhotoURL(data.photoURL || "/default.png");
-        setAesPass(data.aesPass || "default")
-      } else {
-        setUsername(user.email);
-        setPhotoURL("/default.png");
-      }
-    };
-
-    fetchUsername();
-    fetchDiaries();
-  }, [user, navigate, db]);
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/login");
-  };
 
     return (
+
         <div className="min-h-screen bg-gradient-to-br from-indigo-400 to-purple-600 p-6 dark:from-gray-900 dark:to-black p-6">
-
+            <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md mb-6 dark:bg-gray-800">
+                <h1 className="text-3xl font-bold text-indigo-700 dark:text-white">
+                    Hoş geldin, {fullname}
+                </h1>
+            </div>
             <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg dark:bg-gray-800">
-                <div className="flex justify-between items-center mb-6 gap-3">
+                <div className="flex justify-between items-top mb-6">
+                    {/* Sol taraf */}
+                    <div className="flex gap-3">
+                        <Link to="/UserRelations">
+                            <button className="bg-blue-500 hover:bg-blue-600 text-black py-2 px-4 rounded dark:text-white">
+                                İlişkilerim
+                            </button>
+                        </Link>
+                        <Link to="/Profile">
+                            <button className="rounded bg-yellow-300 px-4 py-2 dark:bg-green-400 dark:text-white dark:hover:bg-green-500 hover:bg-yellow-400">
+                                Profilim
+                            </button>
+                        </Link>
 
+                        <Link to="/UserSearch">
+                            <button className="rounded bg-green-300 px-4 py-2 dark:bg-red-700 dark:text-white hover:bg-green-400 dark:hover:bg-red-800">
+                                Kullanıcı Ara
+                            </button>
+                        </Link>
+                    </div>
 
-
-
-                    <h1 className="text-3xl font-bold text-indigo-700">
-                        Hoş geldin, {fullname}
-                    </h1>
-                    <button
-                        onClick={handleLogout}
-                        className="bg-red-500 hover:bg-red-600 text-white py-2  px-4 rounded"
-                    >
-                        Çıkış
-                    </button>
-                    <Link to="/Profile">
-                        <button className="rounded">Profilim</button>
-                    </Link>
-
-
-
-
-
-                    <img
-                        src={photoURL}
-                        alt="Profil Fotoğrafı"
-                        className="w-24 h-17 rounded-full object-cover"
-                    />
+                    {/* Sağ taraf */}
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleLogout}
+                            className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
+                        >
+                            Çıkış
+                        </button>
+                        <img
+                            src={photoURL}
+                            alt="Profil Fotoğrafı"
+                            className="w-24 h-17 rounded-full object-cover"
+                        />
+                    </div>
                 </div>
+
 
                 <h2 className="text-xl font-semibold mb-4">Günlüklerin</h2>
 
@@ -121,7 +134,7 @@ export default function Home() {
                                 key={diary.id}
                                 className="border p-4 rounded shadow hover:shadow-md transition"
                             >
-                                <p className="text-black dark:text-white">{decrypt(diary.content,aesPass)}</p>
+                                <p className="text-black dark:text-white">{decrypt(diary.content, diary.aesPass)}</p>
                                 <small className="text-gray-500">
                                     {new Date(diary.createdAt?.seconds * 1000).toLocaleString()}
                                 </small>

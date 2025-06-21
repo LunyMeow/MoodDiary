@@ -5,6 +5,8 @@ import { updatePassword } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Link } from "react-router-dom";
 import { updateEmail } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore"; // ⬅️ eklenmeli en üste
+
 
 
 
@@ -102,6 +104,26 @@ export default function ProfileSettings() {
     }
 
     try {
+
+      // Kullanıcı adı başka biri tarafından kullanılıyor mu kontrol et
+      const usernameQuery = await getDocs(
+        query(
+          collection(db, "users"),
+          where("username", "==", profile.username)
+        )
+      );
+
+      // Eğer kullanıcı adını başka biri kullanıyorsa ve bu kullanıcı **kendisi değilse** hata ver
+      if (!usernameQuery.empty) {
+        const docSnap = usernameQuery.docs[0];
+        if (docSnap.id !== user.uid) {
+          setError("Bu kullanıcı adı zaten alınmış.");
+          return;
+        }
+      }
+
+
+
       // Firestore güncelle
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, {
@@ -191,7 +213,7 @@ export default function ProfileSettings() {
             className="w-full p-2 border rounded bg-gray-200 dark:bg-gray-600 dark:text-gray-300"
           />
         </div>
-    
+
         <div>
           <label className="block mb-1 text-gray-700 dark:text-gray-300">Yeni E-posta</label>
           <input

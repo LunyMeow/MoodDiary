@@ -1,18 +1,18 @@
 // src/pages/NewDiary.jsx
 import { useForm } from "react-hook-form";
-import { collection, addDoc, serverTimestamp, doc,getDoc } from "firebase/firestore";
 import { getFirebaseDB, getFirebaseAuth } from "../services/firebase"
 import { useNavigate } from "react-router-dom";
-import { encrypt } from "../utils/crypto";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import {  getFirebaseFunctions } from "../services/firebase";
+
+import { httpsCallable } from "firebase/functions";
 
 
 
 
 export default function NewDiary() {
 
-  const [aesPass, setAesPass] = useState("");
+
 
   const { register, handleSubmit } = useForm();
   const navigate = useNavigate();
@@ -20,31 +20,29 @@ export default function NewDiary() {
   const db = getFirebaseDB();
 
   const user = auth?.currentUser;
+  const functions = getFirebaseFunctions();
 
-  const fetchKey = async () => {
-    const docRef = doc(db, "users", user.uid);
-    const docSnap = await getDoc(docRef);
 
-    const data = docSnap.data();
-    setAesPass(data.aesPass || "default")
+  const createDiary = httpsCallable(functions, "createDiary");
 
-  };
-
-  fetchKey();
   const onSubmit = async (data) => {
     const user = auth.currentUser;
     if (!user) return;
 
-    const encryptedContent = encrypt(data.content,aesPass);
-
-    await addDoc(collection(db, "diaries"), {
-      userId: user.uid,
-      content: encryptedContent,
-      createdAt: serverTimestamp(),
+    // Sunucuya gönder
+    const result = await createDiary({
+      content: data.content,
+      status: data.status,
     });
 
-    navigate("/");
+    if (result.data?.success) {
+      navigate("/");
+    } else {
+      alert("Bir hata oluştu.");
+    }
   };
+
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-400 to-blue-500 dark:from-gray-800 dark:to-black">
@@ -57,6 +55,16 @@ export default function NewDiary() {
           className="w-full p-4 border border-gray-300 rounded h-64 resize-none text-black dark:bg-gray-900 dark:text-white"
           placeholder="Bugün neler hissettin?"
         ></textarea>
+        <select
+          {...register("status", { required: true, defaultValue: "private" })}
+
+          className="w-full p-2 mt-4 border border-gray-300 rounded text-black dark:bg-gray-900 dark:text-white"
+        >
+          <option value="public">Herkese Açık</option>
+          <option value="private" selected>Sadece Ben</option>
+          <option value="onlyFollowers">Sadece Takipçiler</option>
+        </select>
+
         <button
           type="submit"
           className="bg-green-600 hover:bg-green-700 text-white mt-4 py-2 px-4 rounded w-full "

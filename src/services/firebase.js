@@ -2,6 +2,8 @@ import { initializeApp } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
+import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
+
 
 let app;
 let auth;
@@ -9,6 +11,7 @@ let db;
 let storage;
 let aes_pass;
 let firebaseReady = false;
+let functions;
 
 // 💡 TRUE: localhost emülatör, FALSE: production
 const USE_EMULATORS = true;
@@ -21,11 +24,10 @@ export async function initializeFirebase() {
     const config = {
       apiKey: "fake-api-key",
       authDomain: "localhost",
-      projectId: "demo-project",
-      storageBucket: "demo-project.appspot.com",
+      projectId: import.meta.env.VITE_PROJECT_ID,
+      storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
       messagingSenderId: "fake-id",
       appId: "fake-app-id",
-      aes_pass: "local-aes-password"
     };
 
     app = initializeApp(config);
@@ -34,6 +36,9 @@ export async function initializeFirebase() {
     storage = getStorage(app);
     aes_pass = config.aes_pass;
 
+    functions = getFunctions(app);
+    connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+
     // ⚙️ Emülatör bağlantıları
     connectAuthEmulator(auth, "http://127.0.0.1:9099");
     connectFirestoreEmulator(db, "127.0.0.1", 8080);
@@ -41,11 +46,16 @@ export async function initializeFirebase() {
 
     console.log("🧪 Firebase emulators connected.");
   } else {
-    // 🌐 Production yapılandırması uzaktan çekilir
-    const res = await fetch("https://example.com");
-    let text = await res.text();
-    text = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
-    const config = JSON.parse(text);
+    // 🌐 Production yapılandırması doğrudan .env üzerinden alınır
+    const config = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.VITE_PROJECT_ID,
+      storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    };
+
 
     app = initializeApp(config);
     auth = getAuth(app);
@@ -57,6 +67,18 @@ export async function initializeFirebase() {
   }
 
   firebaseReady = true;
+}
+
+
+export function getFirebaseFunctions() {
+  if (!firebaseReady || !functions) throw new Error("Firebase Functions not initialized");
+  return functions;
+}
+
+
+export function getFirebaseApp() {
+  if (!firebaseReady || !app) throw new Error("Firebase App not initialized");
+  return app;
 }
 
 // Getter fonksiyonlar

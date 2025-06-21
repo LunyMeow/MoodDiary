@@ -3,7 +3,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirebaseAuth, getFirebaseDB } from "../services/firebase"; // ⬅️ değiştirildi
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDocs, query, collection, where } from "firebase/firestore";
 import { Link } from "react-router-dom";
 
 
@@ -19,30 +19,44 @@ function generateAESKey(length = 32) {
 
 
 export default function Register() {
-  
+
   const { register, handleSubmit } = useForm();
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
   const onSubmit = async (data) => {
     try {
-      // 1. Firebase Auth ile kullanıcı oluştur
       const auth = getFirebaseAuth();
       const db = getFirebaseDB();
+
+      // Kullanıcı adı benzersiz mi kontrol et
+      const usernameQuery = await getDocs(
+        query(collection(db, "users"), where("username", "==", data.username))
+
+      );
+      if (!usernameQuery.empty) {
+        setError("Bu kullanıcı adı zaten alınmış.");
+        return;
+      }
+
+      // Firebase Auth ile kullanıcı oluştur
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      // 2. Firestore'da user bilgilerini kaydet
+      // Firestore'a kaydet
       await setDoc(doc(db, "users", user.uid), {
         username: data.username,
         fullname: data.fullname,
         email: data.email,
-        aesPass:generateAESKey()
+        following:[],
+        followers:[],
+        blocked:[],
       });
 
-      navigate("/"); // başarılıysa anasayfaya git
+      navigate("/");
+
     } catch (err) {
-      console.error("Register Hata:", err); // <-- Stack trace ve hata türü
+      console.error("Register Hata:", err.code, err.message);
 
       setError(err.message);
     }

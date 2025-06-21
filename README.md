@@ -35,9 +35,12 @@ firebase deploy --only functions
 
 
 <img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/3.png"></img>
+<img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/4.png"></img>
+<img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/5.png"></img>
+
+
 Diğer Resimler:
 [Ekran Görüntüsü](ScreenShots/1.png)
-[Ekran Görüntüsü](ScreenShots/4.png)
 
 
 
