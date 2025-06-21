@@ -83,9 +83,10 @@ Katkılarınız için teşekkür ederiz! Lütfen aşağıdaki adımları izleyer
 
 ---
 
-## 📄 Lisans
+## Lisans
 
-Bu proje MIT Lisansı ile lisanslanmıştır. Daha fazla bilgi için [LICENSE](LICENSE) dosyasına bakabilirsiniz.
+Bu proje [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0) altında lisanslanmıştır.  
+Detaylar için `LICENSE` dosyasını inceleyebilirsiniz.
 
 ---
 
