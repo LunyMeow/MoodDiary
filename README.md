@@ -1,10 +1,8 @@
----
-
 # MoodDiary ✨
 
 **MoodDiary**, React ve Firebase kullanılarak geliştirilmiş, kullanıcıların duygularını ve günlüklerini kolayca kaydedip yönetebileceği modern bir web uygulamasıdır.
 
----
+
 
 ## 📌 Özellikler
 
