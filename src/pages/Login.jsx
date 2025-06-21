@@ -70,6 +70,7 @@ export default function Login() {
                 <button
                     type="submit"
                     className="bg-indigo-600 hover:bg-indigo-700 text-white w-full py-2 rounded transition"
+                    name="submit"
                 >
                     Giriş Yap
                 </button>

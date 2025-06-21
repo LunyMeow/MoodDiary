@@ -90,16 +90,19 @@ Detaylar için `LICENSE` dosyasını inceleyebilirsiniz.
 
 ---
 
+<img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/1.png"></img>
 <img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/2.png"></img>
-
-
 <img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/3.png"></img>
 <img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/4.png"></img>
 <img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/5.png"></img>
 
 
-Diğer Resimler:
-[Ekran Görüntüsü](ScreenShots/1.png)
+
+<img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/6.png"></img>
+<img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/7.png"></img>
+<img src="https://raw.githubusercontent.com/LunyMeow/MoodDiary/refs/heads/main/ScreenShots/8.png"></img>
+
+
 
 
 
