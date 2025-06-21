@@ -82,22 +82,41 @@ export default function Home() {
 
     return (
 
-        <div className="min-h-screen bg-gradient-to-br from-indigo-400 to-purple-600 p-6 dark:from-gray-900 dark:to-black p-6">
-            <div className=" justify-start max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md mb-6 dark:bg-gray-800">
-                <h1 className="text-3xl font-bold text-indigo-700 dark:text-white">
-                    Hoş geldin, {fullname}
-                </h1>
-                <div className="relative p-6">
-                    <button
-                        onClick={() => setShowNotifs((prev) => !prev)}
-                        className="bg-indigo-600 text-white px-2 py-2 rounded hover:bg-indigo-800"
-                    >
-                        🔔 Bildirimler
-                    </button>
+        <div className="min-h-screen bg-gradient-to-br from-indigo-400 to-purple-600  dark:from-gray-900 dark:to-black p-6">
+            <div className="flex justify-between max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md mb-6 dark:bg-gray-800 items-center">
+                {/* Sol taraf */}
+                <div className="flex items-center gap-6">
+                    <h1 className="text-3xl font-bold text-indigo-700 dark:text-white">
+                        Hoş geldin, {fullname}
+                    </h1>
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowNotifs((prev) => !prev)}
+                            className="bg-indigo-600 text-white px-2 py-2 rounded hover:bg-indigo-800"
+                        >
+                            🔔 Bildirimler
+                        </button>
 
-                    <NotificationPanel open={showNotifs} onClose={() => setShowNotifs(false)} />
+                        <NotificationPanel open={showNotifs} onClose={() => setShowNotifs(false)} />
+                    </div>
+                </div>
+
+                {/* Sağ taraf */}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleLogout}
+                        className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
+                    >
+                        Çıkış
+                    </button>
+                    <img
+                        src={photoURL}
+                        alt="Profil Fotoğrafı"
+                        className="w-24 h-24 rounded-full object-cover"
+                    />
                 </div>
             </div>
+
 
             <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg dark:bg-gray-800">
                 <div className="flex justify-between items-top mb-2">
@@ -126,20 +145,6 @@ export default function Home() {
 
                     </div>
 
-                    {/* Sağ taraf */}
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={handleLogout}
-                            className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
-                        >
-                            Çıkış
-                        </button>
-                        <img
-                            src={photoURL}
-                            alt="Profil Fotoğrafı"
-                            className="w-24 h-17 rounded-full object-cover"
-                        />
-                    </div>
                 </div>
 
 

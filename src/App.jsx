@@ -10,6 +10,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import UserProfile from "./pages/UserProfile";
 import UserRelations from "./pages/UserRelationships";
 import UserSearch from "./pages/UserSearch";
+import Index from "./pages/Index";
 
 import { initializeFirebase } from "./services/firebase";
 
@@ -29,14 +30,15 @@ function App() {
           <ThemeToggle />
         </div>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<Index/>}/>
+          <Route path="/Dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/NewDiary" element={<NewDiary />} />
           <Route path="/edit/:id" element={<EditDiary />} />
           <Route path="/Profile" element={<Profile />} />
           <Route path="/User/:username" element={<UserProfile />} />
-          <Route path="/UserRelations" element={<UserRelations/>}></Route>
+          <Route path="/UserRelations" element={<UserRelations/>} />
           <Route path="/UserSearch" element={<UserSearch />} />
         </Routes>
       </div>

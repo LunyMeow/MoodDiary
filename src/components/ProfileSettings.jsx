@@ -245,7 +245,7 @@ export default function ProfileSettings() {
         </button>
       </form>
       <div className="flex justify-center mt-4">
-        <Link to="/">
+        <Link to="/Dashboard">
           <button className="bg-green-600 hover:bg-green-900 text-white py-2 px-4 rounded">
             Ana Sayfa
           </button>

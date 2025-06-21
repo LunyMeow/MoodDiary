@@ -51,7 +51,8 @@ export default function UserSearch() {
     };
 
     return (
-        <div className="max-w-xl mx-auto p-6 bg-white rounded shadow-md dark:bg-gray-800 dark:text-white">
+        <div className="max-w-xl mx-auto p-6 bg-white rounded-xl shadow-md dark:bg-gray-800 dark:text-white">
+            
             <h1 className="text-2xl font-bold mb-4">Kullanıcı Ara</h1>
 
             <div className="flex mb-4">
@@ -97,7 +98,7 @@ export default function UserSearch() {
                     </li>
                 ))}
             </ul>
-            <Link to="/">
+            <Link to="/Dashboard">
                 <button className="bg-blue-600 hover:bg-blue-900 text-white py-2 px-4 rounded">
                     Ana Sayfa
                 </button>

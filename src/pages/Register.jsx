@@ -48,12 +48,12 @@ export default function Register() {
         username: data.username,
         fullname: data.fullname,
         email: data.email,
-        following:[],
-        followers:[],
-        blocked:[],
-        notifications:[],
-        profilePublic:true,
-        followRequests:[],
+        following: [],
+        followers: [],
+        blocked: [],
+        notifications: [],
+        profilePublic: true,
+        followRequests: [],
       });
 
       navigate("/");
@@ -67,6 +67,12 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-400 to-purple-600 dark:from-gray-900 dark:to-black">
+      <Link
+        to="/"
+        className="absolute left-0 top-0 h-full w-12 flex items-center justify-center dark:bg-blue-900 dark:hover:bg-blue-950 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl rounded-r"
+      >
+        {"<"}
+      </Link>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-sm"

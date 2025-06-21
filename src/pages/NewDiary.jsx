@@ -72,7 +72,7 @@ export default function NewDiary() {
           Kaydet
         </button>
         <div className="flex justify-center mt-4">
-          <Link to="/">
+          <Link to="/Dashboard">
             <button className="bg-blue-600 hover:bg-blue-900 text-white py-2 px-4 rounded">
               Ana Sayfa
             </button>

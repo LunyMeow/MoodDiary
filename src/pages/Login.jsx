@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 
 export default function Login() {
 
-    
+
     const { register, handleSubmit } = useForm();
     const navigate = useNavigate();
     const [error, setError] = useState("");
@@ -26,7 +26,7 @@ export default function Login() {
             }
             const auth = getFirebaseAuth();
             await signInWithEmailAndPassword(auth, data.email, data.password);
-            navigate("/"); // giriş başarılıysa anasayfaya yönlendir
+            navigate("/Dashboard"); // giriş başarılıysa anasayfaya yönlendir
         } catch (err) {
             setError("E-posta veya şifre hatalı!" + err + isFirebaseReady());
         }
@@ -34,7 +34,14 @@ export default function Login() {
 
 
     return (
+
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-400 to-indigo-600 dark:from-indigo-900 dark:to-teal-700">
+            <Link
+                to="/"
+                className="absolute left-0 top-0 h-full w-12 flex items-center justify-center  dark:bg-gray-800 dark:hover:bg-gray-900 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl rounded-r"
+            >
+                {"<"}
+            </Link>
             <form
                 onSubmit={handleSubmit(onSubmit)}
                 className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm dark:bg-gray-800"

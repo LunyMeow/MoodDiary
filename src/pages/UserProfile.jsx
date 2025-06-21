@@ -129,7 +129,7 @@ export default function UserProfile() {
     if (!userData) return <p>Kullanıcı bulunamadı.</p>;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-400 to-indigo-700 p-6 dark:from-black dark:to-gray-800">
+        <div className=" min-h-screen bg-gradient-to-br from-purple-400 to-indigo-700 p-6 dark:from-black dark:to-gray-800">
             <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg dark:bg-gray-800">
                 <div className="flex items-center gap-4 mb-6">
                     <img src={userData.photoURL || "/default.png"} className="w-20 h-20 rounded-full" />
@@ -257,7 +257,7 @@ export default function UserProfile() {
 
             <br />
             <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md mb-6 dark:bg-gray-800">
-                <Link to="/">
+                <Link to="/Dashboard">
                     <button className="bg-blue-600 hover:bg-blue-900 text-white py-2 px-4 rounded">
                         Ana Sayfa
                     </button>
