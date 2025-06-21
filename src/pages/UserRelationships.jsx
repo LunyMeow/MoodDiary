@@ -7,6 +7,8 @@ import {
     arrayRemove,
 } from "firebase/firestore";
 import { Link } from "react-router-dom";
+import { getFunctions, httpsCallable } from "firebase/functions";
+
 
 
 export default function UserRelations() {
@@ -16,7 +18,11 @@ export default function UserRelations() {
     const db = getFirebaseDB();
 
     useEffect(() => {
+
+
         const fetchUserData = async () => {
+
+
             const auth = getFirebaseAuth();
             const user = auth.currentUser;
             if (!user) return;
@@ -44,7 +50,10 @@ export default function UserRelations() {
                 const followers = await convertUIDsToUsernames(data.followers);
                 const blocked = await convertUIDsToUsernames(data.blocked);
 
-                setUserData({ following, followers, blocked });
+                const followRequests = await convertUIDsToUsernames(data.followRequests);
+                setUserData({ following, followers, blocked, followRequests });
+
+
             }
 
             setLoading(false);
@@ -90,8 +99,41 @@ export default function UserRelations() {
         const followers = await convertUIDsToUsernames(updatedData.followers);
         const blocked = await convertUIDsToUsernames(updatedData.blocked);
 
-        setUserData({ following, followers, blocked });
+
+        const followRequests = await convertUIDsToUsernames(updatedData.followRequests);
+        setUserData({ following, followers, blocked, followRequests });
     };
+
+
+    const handleAcceptRequest = async (requesterId) => {
+        const functions = getFunctions();
+        const acceptRequest = httpsCallable(functions, "acceptFollowRequest");
+        await acceptRequest({ requesterId });
+
+        // Kullanıcının güncellenmiş verilerini tekrar çek
+        const userRef = doc(db, "users", uid);
+        const updatedDoc = await getDoc(userRef);
+        const updatedData = updatedDoc.data();
+
+        const convertUIDsToUsernames = async (uidList) => {
+            const usernames = [];
+            for (const uid of uidList || []) {
+                const uDoc = await getDoc(doc(db, "users", uid));
+                if (uDoc.exists()) {
+                    usernames.push({ uid, username: uDoc.data().username });
+                }
+            }
+            return usernames;
+        };
+
+        const following = await convertUIDsToUsernames(updatedData.following);
+        const followers = await convertUIDsToUsernames(updatedData.followers);
+        const blocked = await convertUIDsToUsernames(updatedData.blocked);
+        const followRequests = await convertUIDsToUsernames(updatedData.followRequests);
+
+        setUserData({ following, followers, blocked, followRequests });
+    };
+
 
 
     if (loading) return <div className="text-center p-4">Yükleniyor...</div>;
@@ -127,7 +169,7 @@ export default function UserRelations() {
                                         <div>
                                             <p className="font-semibold text-indigo-600 dark:text-indigo-400">
                                                 {user.fullname || user.username}
-                                                
+
                                             </p>
 
                                         </div>
@@ -149,6 +191,39 @@ export default function UserRelations() {
 
                 </div>
             ))}
+            <div className="mb-6">
+                <h2 className="text-xl font-semibold capitalize mb-2">Takip İstekleri</h2>
+                {userData.followRequests?.length > 0 ? (
+                    <ul className="space-y-2">
+                        {userData.followRequests.map((user, index) => (
+                            <li
+                                key={index}
+                                className="flex justify-between items-center bg-yellow-100 dark:bg-yellow-800 px-4 py-2 rounded"
+                            >
+                                <Link to={`/user/${user.username}`} className="flex items-center gap-4">
+                                    <img
+                                        src={user.photoURL || "/default.png"}
+                                        alt={user.username}
+                                        className="w-12 h-12 rounded-full object-cover"
+                                    />
+                                    <p className="font-semibold">{user.fullname || user.username}</p>
+                                </Link>
+                                <button
+                                    onClick={() => handleAcceptRequest(user.uid)}
+                                    className="bg-green-500 hover:bg-green-600 text-white text-sm px-3 py-1 rounded"
+                                >
+                                    Kabul Et
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Bekleyen istek yok.
+                    </p>
+                )}
+            </div>
+
             <Link to="/">
                 <button className="bg-blue-600 hover:bg-blue-900 text-white py-2 px-4 rounded">
                     Ana Sayfa

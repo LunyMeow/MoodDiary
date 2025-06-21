@@ -14,7 +14,15 @@ export default function NotificationPanel({ open, onClose }) {
             try {
                 const getNotifs = httpsCallable(functions, "getNotifications");
                 const res = await getNotifs();
-                setNotifications(res.data.notifications || []);
+                const rawNotifs = res.data.notifications || [];
+
+                const sortedNotifs = rawNotifs.sort((a, b) => {
+                    const timeA = a.timestamp?._seconds || 0;
+                    const timeB = b.timestamp?._seconds || 0;
+                    return timeB - timeA; // 🔁 büyük tarih önce gelsin
+                });
+
+                setNotifications(sortedNotifs);
             } catch (err) {
                 console.error("Bildirim alınamadı:", err);
             }
@@ -50,13 +58,16 @@ export default function NotificationPanel({ open, onClose }) {
                         <ul className="space-y-2 max-h-64 overflow-y-auto">
                             {notifications.map((n, i) => (
                                 <li key={i} className="text-sm text-gray-700 dark:text-gray-300 border-b pb-2">
-                                    {n.type === "follow" && `Bir kullanıcı seni takip etmeye başladı.`}
-                                    {n.type === "unfollow" && `Bir kullanıcı takipten çıktı.`}
+                                    {n.type === "follow" && `Bir kullanıcı seni takip etmeye başladı: ${n.fromUsername}`}
+                                    {n.type === "unfollow" && `Bir kullanıcı takipten çıktı: ${n.fromUsername}`}
+                                    {n.type === "followRequest" && `Takip isteğin var: ${n.fromUsername}`}
+                                    {n.type === "follow_accepted" && `Takip isteği kabul edildi: ${n.fromUsername}`}
+
                                     <br />
                                     <span className="text-xs text-gray-500">
                                         {n.timestamp?._seconds
-    ? new Date(n.timestamp._seconds * 1000).toLocaleString()
-    : "Zaman yok"}                  </span>
+                                            ? new Date(n.timestamp._seconds * 1000).toLocaleString()
+                                            : "Zaman yok"}                  </span>
                                 </li>
                             ))}
                         </ul>

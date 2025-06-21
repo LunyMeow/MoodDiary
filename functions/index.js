@@ -100,39 +100,103 @@ const db = admin.firestore();
 export const followUser = onCall(async (req) => {
   const currentUserId = req.auth?.uid;
   const targetUserId = req.data.targetUserId;
-  console.log("WOW");
 
   if (!currentUserId) throw new Error("User not authenticated");
   if (!targetUserId) throw new Error("targetUserId required");
 
-  await db.collection("users").doc(targetUserId).update({
-    followers: admin.firestore.FieldValue.arrayUnion(currentUserId)
-  });
-  await db.collection("users").doc(currentUserId).update({
-    following: admin.firestore.FieldValue.arrayUnion(targetUserId)
-  });
+  const targetUserRef = db.collection("users").doc(targetUserId);
+  const targetUserSnap = await targetUserRef.get();
 
+  if (!targetUserSnap.exists) throw new Error("Target user not found");
 
+  const targetData = targetUserSnap.data();
+  const profilePublic = targetData.profilePublic === true;
 
+  if (profilePublic) {
+    // Doğrudan takip et
+    await targetUserRef.update({
+      followers: admin.firestore.FieldValue.arrayUnion(currentUserId)
+    });
+    await db.collection("users").doc(currentUserId).update({
+      following: admin.firestore.FieldValue.arrayUnion(targetUserId)
+    });
 
+    // Bildirim gönder
+    const notification = {
+      type: "follow",
+      from: currentUserId,
+      timestamp: admin.firestore.Timestamp.now(),
+      read: false
+    };
 
-  // 🟢 Bildirim gönder (her zaman)
-  const notification = {
-    type: "follow",
-    from: currentUserId,
-    timestamp: admin.firestore.Timestamp.now(), // ✅ Burada değiştiriyoruz
-    read: false
-  };
+    await targetUserRef.update({
+      notifications: admin.firestore.FieldValue.arrayUnion(notification)
+    });
 
-  await db.collection("users").doc(targetUserId).update({
-    notifications: admin.firestore.FieldValue.arrayUnion(notification)
-  });
+  } else {
 
+    const notification = {
+      type: "followRequest",
+      from: currentUserId,
+      timestamp: admin.firestore.Timestamp.now(),
+      read: false
+    };
 
-
+    await targetUserRef.update({
+      notifications: admin.firestore.FieldValue.arrayUnion(notification)
+    });
+    // Takip isteği gönder
+    await targetUserRef.update({
+      followRequests: admin.firestore.FieldValue.arrayUnion(currentUserId)
+    });
+  }
 
   return { success: true };
 });
+
+
+
+// Firebase functions dosyana ekle
+export const acceptFollowRequest = onCall(async (req) => {
+  const currentUserId = req.auth?.uid;
+  const requesterId = req.data.requesterId;
+
+  if (!currentUserId) throw new Error("User not authenticated");
+  if (!requesterId) throw new Error("requesterId is required");
+
+  const db = admin.firestore();
+
+  const currentUserRef = db.collection("users").doc(currentUserId);
+  const requesterRef = db.collection("users").doc(requesterId);
+
+  // Kullanıcıları güncelle
+  await currentUserRef.update({
+    followers: admin.firestore.FieldValue.arrayUnion(requesterId),
+    followRequests: admin.firestore.FieldValue.arrayRemove(requesterId),
+  });
+
+  await requesterRef.update({
+    following: admin.firestore.FieldValue.arrayUnion(currentUserId),
+  });
+
+  // Bildirim gönder
+  const notification = {
+    type: "follow_accepted",
+    from: currentUserId,
+    timestamp: admin.firestore.Timestamp.now(),
+    read: false,
+  };
+
+  await requesterRef.update({
+    notifications: admin.firestore.FieldValue.arrayUnion(notification),
+  });
+
+  return { success: true };
+});
+
+
+
+
 let unFollowNotification = true;
 
 
@@ -207,26 +271,43 @@ export const getNotifications = onCall(async (req) => {
 
   const userRef = db.collection("users").doc(uid);
   const userSnap = await userRef.get();
-
   if (!userSnap.exists) throw new HttpsError("not-found", "Kullanıcı bulunamadı.");
 
   const data = userSnap.data();
   let notifications = data?.notifications || [];
 
-  // 🔵 Son 10 okunmamış bildirimi al
   const unread = notifications.filter(n => !n.read).slice(-10);
 
-  // 🔄 Bildirimleri okundu olarak işaretle
-  const updated = notifications.map((n) =>
+  // Tüm 'from' UID'lerini topla
+  const fromUids = unread.map(n => n.from).filter(Boolean);
+
+  // UID → username mapini oluştur
+  const usernameMap = {};
+  const userDocs = await Promise.all(fromUids.map(uid =>
+    db.collection("users").doc(uid).get()
+  ));
+  userDocs.forEach(doc => {
+    if (doc.exists) {
+      usernameMap[doc.id] = doc.data().username || "Bilinmeyen";
+    }
+  });
+
+  // fromUsername'ı her bildirime ekle
+  const enriched = unread.map(n => ({
+    ...n,
+    fromUsername: usernameMap[n.from] || "Bilinmeyen"
+  }));
+
+  // Bildirimleri okundu yap
+  const updated = notifications.map(n =>
     unread.includes(n) ? { ...n, read: true } : n
   );
-
-  // 🔴 50+ bildirimi varsa ilk 10 tanesini sil
   if (updated.length > 50) {
     updated.splice(0, 10);
   }
 
   await userRef.update({ notifications: updated });
 
-  return { notifications: unread };
+  return { notifications: enriched };
 });
+

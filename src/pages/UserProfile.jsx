@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { getFirebaseDB } from "../services/firebase";
-import { query, collection, where, getDocs, doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { query, collection, where, getDocs, getDoc, doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { useEffect, useState, useRef } from "react";
 import { decrypt } from "../utils/crypto";
 import { Link } from "react-router-dom";
@@ -88,11 +88,13 @@ export default function UserProfile() {
 
                         if (
                             diary.status === "onlyFollowers" &&
-                            userData.followers?.includes(currentUser?.uid)
+                            userData?.followers?.includes(currentUser.uid)
+
                         ) return true;
 
                         return false;
                     });
+
 
                 setDiaries(diaryData);
                 log("Günlükler yüklendi:", diaryData);
@@ -103,6 +105,25 @@ export default function UserProfile() {
 
         fetchDiaries();
     }, [userData]); // 🔁 sadece userData geldikten sonra çalışacak
+
+    const [currentUserData, setCurrentUserData] = useState(null);
+
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            if (!currentUser) return;
+            const snap = await getDoc(doc(db, "users", currentUser.uid));
+            if (snap.exists()) {
+                setCurrentUserData({ uid: snap.id, ...snap.data() });
+            }
+        };
+        fetchCurrentUser();
+    }, [currentUser]);
+
+    const isFollowing = currentUserData?.following?.includes(userData?.uid);
+    const isRequested = currentUserData?.followRequests?.includes(userData?.uid); // Bunu ters yönden kontrol etmemiz gerek!
+    const isRequestedByYou = userData?.followRequests?.includes(currentUser?.uid); // doğru olan bu
+
+
 
 
     if (!userData) return <p>Kullanıcı bulunamadı.</p>;
@@ -129,41 +150,49 @@ export default function UserProfile() {
 
 
                     <div className="flex gap-4 mb-4">
-                        {userData.followers?.includes(currentUser?.uid) ? (
+                        {isFollowing ? (
                             <button
                                 onClick={async () => {
-                                    try {
-                                        await unfollowUser(userData.uid);
-                                        setUserData({
-                                            ...userData,
-                                            followers: userData.followers.filter(uid => uid !== currentUser.uid)
-                                        });
-                                    } catch (error) {
-                                        console.error("Takipten çıkarken hata:", error);
-                                    }
+                                    await unfollowUser(userData.uid);
+                                    const snap = await getDoc(doc(db, "users", userData.uid));
+                                    setUserData({ uid: snap.id, ...snap.data() });
+
+                                    const csnap = await getDoc(doc(db, "users", currentUser.uid));
+                                    setCurrentUserData({ uid: csnap.id, ...csnap.data() });
                                 }}
                                 className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-1 rounded"
                             >
                                 Takipten Çık
                             </button>
+                        ) : isRequestedByYou ? (
+                            <button
+                                onClick={async () => {
+                                    await updateDoc(doc(db, "users", userData.uid), {
+                                        followRequests: arrayRemove(currentUser.uid)
+                                    });
+                                    const snap = await getDoc(doc(db, "users", userData.uid));
+                                    setUserData({ uid: snap.id, ...snap.data() });
+                                }}
+                                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-1 rounded"
+                            >
+                                İsteği Geri Çek
+                            </button>
                         ) : (
                             <button
                                 onClick={async () => {
-                                    try {
-                                        await followUser(userData.uid);
-                                        setUserData({
-                                            ...userData,
-                                            followers: [...(userData.followers || []), currentUser.uid]
-                                        });
-                                    } catch (error) {
-                                        console.error("Takip ederken hata:", error);
-                                    }
+                                    await followUser(userData.uid); // Backend'de profilePublic kontrolü olmalı
+                                    const snap = await getDoc(doc(db, "users", userData.uid));
+                                    setUserData({ uid: snap.id, ...snap.data() });
+
+                                    const csnap = await getDoc(doc(db, "users", currentUser.uid));
+                                    setCurrentUserData({ uid: csnap.id, ...csnap.data() });
                                 }}
                                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
                             >
                                 Takip Et
                             </button>
                         )}
+
 
                         {userData.blocked?.includes(userData.uid) ? (
                             <button

@@ -52,6 +52,8 @@ export default function Register() {
         followers:[],
         blocked:[],
         notifications:[],
+        profilePublic:true,
+        followRequests:[],
       });
 
       navigate("/");
